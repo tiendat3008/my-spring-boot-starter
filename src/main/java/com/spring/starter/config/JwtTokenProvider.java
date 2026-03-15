@@ -1,0 +1,66 @@
+package com.spring.starter.config;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.stereotype.Component;
+
+import com.spring.starter.entity.User;
+import com.spring.starter.exception.AppException;
+import com.spring.starter.exception.ErrorCode;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
+@Component
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class JwtTokenProvider {
+
+	JwtEncoder jwtEncoder;
+    JwtDecoder jwtDecoder;
+	JwtProperties jwtProperties;
+
+	public String issueAccessToken(User user) {
+        return buildToken(user, jwtProperties.accessTokenExpirySeconds(), "access");
+    }
+
+    public String issueRefreshToken(User user) {
+        return buildToken(user, jwtProperties.refreshTokenExpirySeconds(), "refresh");
+    }
+
+    private String buildToken(User user, Long expirySeconds, String type) {
+        Instant now = Instant.now();
+        List<String> roles = user.getRoles().stream()
+                .map(ur -> ur.getRole().name())
+                .toList();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(jwtProperties.issuer())
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(expirySeconds))
+                .subject(user.getEmail())
+                .id(UUID.randomUUID().toString())
+                .claim("roles", String.join(" ", roles))
+                .claim("type", type)
+                .build();
+
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
+    public Jwt extractToken(String token) {
+        try {
+            return jwtDecoder.decode(token);
+        } catch (JwtException ex) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+    }
+}
