@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -57,20 +61,23 @@ public class SecurityConfig {
 	) throws Exception {
 		
 		http
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.csrf(AbstractHttpConfigurer::disable)
+				.sessionManagement(session ->
+						session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				)
+				.exceptionHandling((exceptions) -> exceptions
+						.authenticationEntryPoint(customAuthenticationEntryPoint)
+						.accessDeniedHandler(customAccessDeniedHandler)
+				)
 				.authorizeHttpRequests((authorize) -> authorize
 						.requestMatchers(PUBLIC_ENDPOINTS).permitAll()
 						.requestMatchers("/admin/filter").hasRole("ADMIN")
 						.anyRequest().authenticated()
 				)
-				.csrf(AbstractHttpConfigurer::disable)
 				.oauth2ResourceServer((oauth2) -> oauth2
 						.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
 						.authenticationEntryPoint(customAuthenticationEntryPoint)
-				)
-				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.exceptionHandling((exceptions) -> exceptions
-						.authenticationEntryPoint(customAuthenticationEntryPoint)
-						.accessDeniedHandler(customAccessDeniedHandler)
 				);
 
 		return http.build();
@@ -88,6 +95,25 @@ public class SecurityConfig {
 		converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
 
 		return converter;
+	}
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		var config = new CorsConfiguration();
+
+		config.setAllowedOrigins(List.of(
+				"http://localhost:3000",
+				"http://localhost:5173"
+		));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		config.setAllowedHeaders(List.of("*"));
+		config.setAllowCredentials(true);
+		config.setMaxAge(3600L);
+
+		var source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", config);
+
+		return source;
 	}
 
 	@Bean
