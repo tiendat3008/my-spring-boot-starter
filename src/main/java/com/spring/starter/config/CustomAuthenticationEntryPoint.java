@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,12 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     ) throws IOException, ServletException {
         
         ErrorCode errorCode = ErrorCode.UNAUTHENTICATED;
+
+        Throwable cause = authException.getCause();
+
+        if (cause instanceof JwtException) {
+            errorCode = ErrorCode.TOKEN_EXPIRED;
+        }
 
         response.setStatus(errorCode.getStatusCode().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

@@ -64,8 +64,9 @@ public class SecurityConfig {
 				)
 				.csrf(AbstractHttpConfigurer::disable)
 				.oauth2ResourceServer((oauth2) -> oauth2
-						.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())
-                ))
+						.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+						.authenticationEntryPoint(customAuthenticationEntryPoint)
+				)
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.exceptionHandling((exceptions) -> exceptions
 						.authenticationEntryPoint(customAuthenticationEntryPoint)

@@ -21,6 +21,10 @@ public record ApiResponse<T>(
         return new ApiResponse<>("SUCCESS", message, data, null, Instant.now());
     }
 
+    public static ApiResponse<Void> noContent() {
+        return new ApiResponse<>("SUCCESS", null, null, null, Instant.now());
+    }
+
     public static ApiResponse<Void> error(String code, String message) {
         return new ApiResponse<>(code, message, null, null, Instant.now());
     }

@@ -20,7 +20,9 @@ public enum ErrorCode {
     UNAUTHENTICATED("UNAUTHENTICATED", "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED("UNAUTHORIZED", "You do not have permission", HttpStatus.FORBIDDEN),
     TOKEN_REVOKED("TOKEN_REVOKED", "Token has been revoked", HttpStatus.UNAUTHORIZED),
-    INVALID_TOKEN("INVALID_TOKEN", "Invalid JWT token", HttpStatus.UNAUTHORIZED)
+    TOKEN_EXPIRED("TOKEN_EXPIRED", "Token has expired", HttpStatus.UNAUTHORIZED),
+    INVALID_TOKEN("INVALID_TOKEN", "Invalid JWT token", HttpStatus.UNAUTHORIZED),
+    MISSING_REFRESH_TOKEN("MISSING_REFRESH_TOKEN", "Refresh token is missing", HttpStatus.BAD_REQUEST)
     ;
 
     private final String code;
