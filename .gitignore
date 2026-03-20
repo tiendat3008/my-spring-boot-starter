@@ -41,3 +41,10 @@ build/
 ### Logs ###
 *.log
 logs/
+
+app.key
+app.pub
+
+application-prod.yml
+.env.local
+.env.*.local
