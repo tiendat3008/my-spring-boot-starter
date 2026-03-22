@@ -76,7 +76,9 @@ public class SecurityConfig {
 						.anyRequest().authenticated()
 				)
 				.oauth2ResourceServer((oauth2) -> oauth2
-						.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+						.jwt(jwt -> jwt
+								.decoder(jwtDecoder(rsaPublicKey()))
+								.jwtAuthenticationConverter(jwtAuthenticationConverter()))
 						.authenticationEntryPoint(customAuthenticationEntryPoint)
 				);
 
@@ -121,7 +123,7 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder(12);
 	}
 
-	@Bean
+	@Bean("appJwtDecoder")
 	JwtDecoder jwtDecoder(RSAPublicKey publicKey) {
 		return NimbusJwtDecoder.withPublicKey(publicKey).build();
 	}

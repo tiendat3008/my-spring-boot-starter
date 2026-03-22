@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -17,17 +18,24 @@ import com.spring.starter.exception.AppException;
 import com.spring.starter.exception.ErrorCode;
 
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Component
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JwtTokenProvider {
 
-	JwtEncoder jwtEncoder;
+    JwtProperties jwtProperties;
+    JwtEncoder jwtEncoder;
     JwtDecoder jwtDecoder;
-	JwtProperties jwtProperties;
+
+    public JwtTokenProvider(
+            JwtProperties jwtProperties,
+            JwtEncoder jwtEncoder,
+            @Qualifier("appJwtDecoder") JwtDecoder jwtDecoder) {
+        this.jwtProperties = jwtProperties;
+        this.jwtEncoder = jwtEncoder;
+        this.jwtDecoder = jwtDecoder;
+    }
 
 	public String issueAccessToken(User user) {
         return buildToken(user, jwtProperties.accessTokenExpirySeconds(), "access");

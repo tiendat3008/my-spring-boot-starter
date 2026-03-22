@@ -5,10 +5,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import com.spring.starter.config.JwtProperties;
+import com.spring.starter.config.OAuth2Properties;
 
 @SpringBootApplication
 @EnableConfigurationProperties({
     JwtProperties.class,
+	OAuth2Properties.class,
 })
 public class MySpringBootStarterApplication {
 

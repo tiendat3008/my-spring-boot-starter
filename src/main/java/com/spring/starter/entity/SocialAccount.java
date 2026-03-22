@@ -48,9 +48,12 @@ public class SocialAccount extends BaseEntity {
     @Column(name = "provider_user_id", nullable = false, length = 128)
     String providerUserId;
 
-    // @Column(name = "provider_email")
-    // String providerEmail;
+    @Column(name = "provider_email", length = 255)
+    String providerEmail;
 
-    // @Column(name = "email_verified", nullable = false)
-    // boolean emailVerified;
+    @Column(name = "provider_display_name", length = 255)
+    String providerDisplayName;
+
+    @Column(name = "provider_avatar_url", length = 500)
+    String providerAvatarUrl;
 }

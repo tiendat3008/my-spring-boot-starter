@@ -22,7 +22,12 @@ public enum ErrorCode {
     TOKEN_REVOKED("TOKEN_REVOKED", "Token has been revoked", HttpStatus.UNAUTHORIZED),
     TOKEN_EXPIRED("TOKEN_EXPIRED", "Token has expired", HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN("INVALID_TOKEN", "Invalid JWT token", HttpStatus.UNAUTHORIZED),
-    MISSING_REFRESH_TOKEN("MISSING_REFRESH_TOKEN", "Refresh token is missing", HttpStatus.BAD_REQUEST)
+    MISSING_REFRESH_TOKEN("MISSING_REFRESH_TOKEN", "Refresh token is missing", HttpStatus.BAD_REQUEST),
+
+    OAUTH_PROVIDER_UNSUPPORTED("OAUTH_PROVIDER_UNSUPPORTED", "Unsupported social provider", HttpStatus.BAD_REQUEST),
+    OAUTH_EXCHANGE_FAILED("OAUTH_EXCHANGE_FAILED", "Failed to exchange OAuth authorization code", HttpStatus.BAD_GATEWAY),
+    OAUTH_STATE_INVALID("OAUTH_STATE_INVALID", "Invalid or expired OAuth state", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_VERIFIED("EMAIL_NOT_VERIFIED", "Email not verified by provider", HttpStatus.BAD_REQUEST);
     ;
 
     private final String code;
