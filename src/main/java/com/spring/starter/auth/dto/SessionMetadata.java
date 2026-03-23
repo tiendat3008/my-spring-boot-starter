@@ -2,8 +2,7 @@ package com.spring.starter.auth.dto;
 
 import java.time.Instant;
 
-public record UserSessionResponse(
-        String sessionId,
+public record SessionMetadata(
         String ipAddress,
         String userAgent,
         Instant loginTime

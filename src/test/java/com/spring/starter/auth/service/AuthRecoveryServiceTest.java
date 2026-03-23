@@ -24,6 +24,7 @@ import com.spring.starter.auth.dto.ResendOtpRequest;
 import com.spring.starter.auth.dto.ResetPasswordRequest;
 import com.spring.starter.auth.dto.VerifyEmailRequest;
 import com.spring.starter.auth.entity.User;
+import com.spring.starter.auth.enums.UserStatus;
 import com.spring.starter.auth.repository.UserRepository;
 import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
@@ -89,7 +90,9 @@ class AuthRecoveryServiceTest {
     @Test
     void resetPassword_shouldThrow_whenOtpInvalid() {
         var request = new ResetPasswordRequest("user@example.com", "123456", "new-password");
+        var user = User.builder().email("user@example.com").passwordHash("hash").build();
 
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("otp:reset-password:user@example.com")).thenReturn(null);
 
@@ -102,7 +105,9 @@ class AuthRecoveryServiceTest {
     @Test
     void verifyEmail_shouldThrow_whenOtpInvalid() {
         var request = new VerifyEmailRequest("user@example.com", "123456");
+        var user = User.builder().email("user@example.com").status(UserStatus.UNVERIFIED).build();
 
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("otp:verify-email:user@example.com")).thenReturn("000000");
 
@@ -110,5 +115,32 @@ class AuthRecoveryServiceTest {
                 .isInstanceOf(AppException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.OTP_INVALID_OR_EXPIRED);
+    }
+
+    @Test
+    void verifyEmail_shouldActivateUser_whenOtpValid() {
+        var request = new VerifyEmailRequest("user@example.com", "123456");
+        var user = User.builder().email("user@example.com").status(UserStatus.UNVERIFIED).build();
+
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("otp:verify-email:user@example.com")).thenReturn("123456");
+
+        authRecoveryService.verifyEmail(request);
+
+        org.assertj.core.api.Assertions.assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        verify(redisTemplate).delete("otp:verify-email:user@example.com");
+    }
+
+    @Test
+    void verifyEmail_shouldThrow_whenUserNotExists() {
+        var request = new VerifyEmailRequest("missing@example.com", "123456");
+
+        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authRecoveryService.verifyEmail(request))
+                .isInstanceOf(AppException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_NOT_EXISTED);
     }
 }

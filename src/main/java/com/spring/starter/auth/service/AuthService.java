@@ -1,5 +1,6 @@
 package com.spring.starter.auth.service;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +12,7 @@ import com.spring.starter.auth.dto.AuthResponse;
 import com.spring.starter.auth.dto.ChangePasswordRequest;
 import com.spring.starter.auth.dto.RegisterRequest;
 import com.spring.starter.auth.dto.RegisterResponse;
+import com.spring.starter.auth.dto.SessionMetadata;
 import com.spring.starter.auth.dto.UserSessionResponse;
 import com.spring.starter.auth.entity.User;
 import com.spring.starter.auth.enums.Role;
@@ -22,6 +24,8 @@ import com.spring.starter.common.exception.ErrorCode;
 import com.spring.starter.common.security.JwtTokenProvider;
 import com.spring.starter.user.entity.UserProfile;
 import com.spring.starter.user.repository.UserProfileRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +42,7 @@ public class AuthService {
     JwtTokenProvider jwtTokenProvider;
     JwtProperties jwtProperties;
     RefreshTokenService refreshTokenService;
+    AuthRecoveryService authRecoveryService;
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
@@ -62,6 +67,8 @@ public class AuthService {
                 .build();
         userProfileRepository.save(profile);
 
+        authRecoveryService.sendVerifyEmailOtp(user.getEmail());
+
         return new RegisterResponse(
                 user.getId(),
                 user.getEmail(),
@@ -71,7 +78,7 @@ public class AuthService {
         );
     }
 
-    public AuthResponse authenticate(AuthRequest request){
+    public AuthResponse authenticate(AuthRequest request, HttpServletRequest httpRequest){
 
         var user = userRepository
                 .findByEmail(request.email())
@@ -82,10 +89,18 @@ public class AuthService {
         if (!authenticated)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        return generateTokens(user);
+        if (user.getStatus() == UserStatus.UNVERIFIED) {
+            throw new AppException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
+        }
+
+        return generateTokens(user, httpRequest);
     }
 
-    public AuthResponse refreshAccessToken(String refreshToken) {
+    public AuthResponse authenticate(AuthRequest request) {
+        return authenticate(request, null);
+    }
+
+    public AuthResponse refreshAccessToken(String refreshToken, HttpServletRequest httpRequest) {
 
         String jti = jwtTokenProvider.extractToken(refreshToken).getId();
         String username = jwtTokenProvider.extractToken(refreshToken).getSubject();
@@ -100,7 +115,11 @@ public class AuthService {
 
         refreshTokenService.revokeRefreshToken(jti);
 
-        return generateTokens(user);
+        return generateTokens(user, httpRequest);
+    }
+
+    public AuthResponse refreshAccessToken(String refreshToken) {
+        return refreshAccessToken(refreshToken, null);
     }
 
     public void logout(String refreshToken) {
@@ -130,21 +149,28 @@ public class AuthService {
         }
     }
 
-    public AuthResponse generateTokens(User user) {
+    public AuthResponse generateTokens(User user, HttpServletRequest httpRequest) {
         
         String accessToken = jwtTokenProvider.issueAccessToken(user);
         String refreshToken = jwtTokenProvider.issueRefreshToken(user);
 
+        SessionMetadata sessionMetadata = buildSessionMetadata(httpRequest);
+
         refreshTokenService.storeRefreshToken(
                 user.getId().toString(),
                 jwtTokenProvider.extractToken(refreshToken).getId(),
-                jwtProperties.refreshTokenExpirySeconds());
+                jwtProperties.refreshTokenExpirySeconds(),
+                sessionMetadata);
 
         return new AuthResponse(
                 accessToken,
                 refreshToken,
                 "Bearer",
                 jwtProperties.accessTokenExpirySeconds());
+    }
+
+    public AuthResponse generateTokens(User user) {
+        return generateTokens(user, null);
     }
 
     @Transactional(readOnly = true)
@@ -154,7 +180,16 @@ public class AuthService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return refreshTokenService.listUserSessionIds(user.getId().toString()).stream()
-                .map(UserSessionResponse::new)
+            .map(sessionId -> {
+                SessionMetadata metadata = refreshTokenService.getSessionMetadata(sessionId);
+
+                return new UserSessionResponse(
+                    sessionId,
+                    metadata == null ? null : metadata.ipAddress(),
+                    metadata == null ? null : metadata.userAgent(),
+                    metadata == null ? null : metadata.loginTime()
+                );
+            })
                 .toList();
     }
 
@@ -173,5 +208,28 @@ public class AuthService {
         return user.getRoles().stream()
                 .map(ur -> ur.getRole().name())
                 .toList();
+    }
+
+    private SessionMetadata buildSessionMetadata(HttpServletRequest request) {
+        if (request == null) {
+            return new SessionMetadata(null, null, Instant.now());
+        }
+
+        return new SessionMetadata(
+                extractClientIp(request),
+                request.getHeader("User-Agent"),
+                Instant.now()
+        );
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+
+        if (forwardedFor == null || forwardedFor.isBlank()) {
+            return request.getRemoteAddr();
+        }
+
+        String[] forwardedIps = forwardedFor.split(",");
+        return forwardedIps.length == 0 ? request.getRemoteAddr() : forwardedIps[0].trim();
     }
 }

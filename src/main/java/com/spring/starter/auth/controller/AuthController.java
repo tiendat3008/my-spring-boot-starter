@@ -29,6 +29,7 @@ import com.spring.starter.auth.service.AuthService;
 import com.spring.starter.common.dto.ApiResponse;
 import com.spring.starter.common.security.CookieService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -60,9 +61,10 @@ public class AuthController {
     @PostMapping("/token")
     ResponseEntity<ApiResponse<AuthResponse>> authenticate(
             @RequestBody AuthRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response
     ) {
-        var result = authService.authenticate(request);
+        var result = authService.authenticate(request, httpRequest);
         cookieService.addRefreshToken(response, result.refreshToken());
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -70,9 +72,10 @@ public class AuthController {
     @PostMapping("/refresh")
     ResponseEntity<ApiResponse<AuthResponse>> refresh(
             @CookieValue("refresh_token") String refreshToken,
+            HttpServletRequest httpRequest,
             HttpServletResponse response
     ) {
-        var result = authService.refreshAccessToken(refreshToken);
+        var result = authService.refreshAccessToken(refreshToken, httpRequest);
         cookieService.addRefreshToken(response, result.refreshToken());
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -89,9 +92,10 @@ public class AuthController {
 
     @PostMapping("/refresh/mobile")
     ResponseEntity<ApiResponse<AuthResponse>> refreshMobile(
-            @RequestBody RefreshTokenRequest request
+            @RequestBody RefreshTokenRequest request,
+            HttpServletRequest httpRequest
     ) {
-        var result = authService.refreshAccessToken(request.token());
+        var result = authService.refreshAccessToken(request.token(), httpRequest);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 

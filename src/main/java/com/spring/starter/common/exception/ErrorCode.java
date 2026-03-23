@@ -30,6 +30,7 @@ public enum ErrorCode {
     OAUTH_EXCHANGE_FAILED("OAUTH_EXCHANGE_FAILED", "Failed to exchange OAuth authorization code", HttpStatus.BAD_GATEWAY),
     OAUTH_STATE_INVALID("OAUTH_STATE_INVALID", "Invalid or expired OAuth state", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_VERIFIED("EMAIL_NOT_VERIFIED", "Email not verified by provider", HttpStatus.BAD_REQUEST),
+    USER_EMAIL_NOT_VERIFIED("USER_EMAIL_NOT_VERIFIED", "User email is not verified", HttpStatus.FORBIDDEN),
 
     INVALID_NAME_SIZE("INVALID_NAME_SIZE", "{field} must be at most {max} characters", HttpStatus.BAD_REQUEST),
     INVALID_BIO_SIZE("INVALID_BIO_SIZE", "{field} must be at most {max} characters", HttpStatus.BAD_REQUEST),

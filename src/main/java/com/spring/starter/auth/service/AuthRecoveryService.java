@@ -15,6 +15,7 @@ import com.spring.starter.auth.dto.ForgotPasswordRequest;
 import com.spring.starter.auth.dto.ResendOtpRequest;
 import com.spring.starter.auth.dto.ResetPasswordRequest;
 import com.spring.starter.auth.dto.VerifyEmailRequest;
+import com.spring.starter.auth.enums.UserStatus;
 import com.spring.starter.auth.repository.UserRepository;
 import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
@@ -53,6 +54,10 @@ public class AuthRecoveryService {
         userRepository.findByEmail(request.email()).ifPresent(user -> issueOtp(request.email(), purpose));
     }
 
+    public void sendVerifyEmailOtp(String email) {
+        issueOtp(email, PURPOSE_VERIFY_EMAIL);
+    }
+
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
         var user = userRepository
@@ -70,9 +75,18 @@ public class AuthRecoveryService {
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     }
 
+    @Transactional
     public void verifyEmail(VerifyEmailRequest request) {
+        var user = userRepository
+                .findByEmail(request.email())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         if (!consumeOtp(request.email(), PURPOSE_VERIFY_EMAIL, request.otp())) {
             throw new AppException(ErrorCode.OTP_INVALID_OR_EXPIRED);
+        }
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            user.setStatus(UserStatus.ACTIVE);
         }
     }
 
