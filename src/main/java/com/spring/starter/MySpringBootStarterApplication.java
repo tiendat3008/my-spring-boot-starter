@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-import com.spring.starter.config.JwtProperties;
-import com.spring.starter.config.OAuth2Properties;
+import com.spring.starter.common.config.JwtProperties;
+import com.spring.starter.common.config.OAuth2Properties;
 
 @SpringBootApplication
 @EnableConfigurationProperties({
