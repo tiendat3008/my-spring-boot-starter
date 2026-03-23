@@ -1,0 +1,121 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mã xác thực HDCamp</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background: #f4f4f5;
+      font-family: &quot;Segoe UI&quot;, Arial, sans-serif;
+    "
+  >
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center" style="padding: 40px 0">
+          <table
+            width="520"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              background: #ffffff;
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background: #16a34a;
+                  padding: 32px 40px;
+                  text-align: center;
+                "
+              >
+                <h1
+                  style="
+                    color: #ffffff;
+                    margin: 0;
+                    font-size: 24px;
+                    font-weight: 700;
+                  "
+                >
+                  HDCamp
+                </h1>
+                <p style="color: #bbf7d0; margin: 4px 0 0; font-size: 14px">
+                  Nền tảng cắm trại & nghỉ dưỡng ngoài trời
+                </p>
+              </td>
+            </tr>
+            <!-- Body -->
+            <tr>
+              <td style="padding: 40px">
+                <p style="color: #374151; font-size: 16px; margin: 0 0 24px">
+                  Xin chào,
+                </p>
+                <p style="color: #374151; font-size: 16px; margin: 0 0 32px">
+                  Đây là mã xác thực của bạn. Mã có hiệu lực trong
+                  <strong th:text="${expiryMinutes}">5</strong> phút.
+                </p>
+                <!-- OTP Code -->
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" style="padding: 8px 0 32px">
+                      <span
+                        th:text="${otpCode}"
+                        style="
+                          display: inline-block;
+                          padding: 16px 48px;
+                          font-size: 36px;
+                          font-weight: 700;
+                          letter-spacing: 12px;
+                          color: #16a34a;
+                          background: #f0fdf4;
+                          border: 2px solid #bbf7d0;
+                          border-radius: 8px;
+                        "
+                      >
+                        000000
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+                <p style="color: #6b7280; font-size: 14px; margin: 0 0 8px">
+                  Nếu bạn không yêu cầu mã này, hãy bỏ qua email này.
+                </p>
+                <p style="color: #6b7280; font-size: 14px; margin: 0">
+                  Không chia sẻ mã này với bất kỳ ai.
+                </p>
+              </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+              <td
+                style="
+                  background: #f9fafb;
+                  padding: 20px 40px;
+                  border-top: 1px solid #e5e7eb;
+                "
+              >
+                <p
+                  style="
+                    color: #9ca3af;
+                    font-size: 12px;
+                    margin: 0;
+                    text-align: center;
+                  "
+                >
+                  © 2026 HDCamp. Mọi quyền được bảo lưu.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
