@@ -60,7 +60,7 @@ public class AuthController {
 
     @PostMapping("/token")
     ResponseEntity<ApiResponse<AuthResponse>> authenticate(
-            @RequestBody AuthRequest request,
+            @Valid @RequestBody AuthRequest request,
             HttpServletRequest httpRequest,
             HttpServletResponse response
     ) {
@@ -92,7 +92,7 @@ public class AuthController {
 
     @PostMapping("/refresh/mobile")
     ResponseEntity<ApiResponse<AuthResponse>> refreshMobile(
-            @RequestBody RefreshTokenRequest request,
+            @Valid @RequestBody RefreshTokenRequest request,
             HttpServletRequest httpRequest
     ) {
         var result = authService.refreshAccessToken(request.token(), httpRequest);
