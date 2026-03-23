@@ -50,7 +50,17 @@ public class SecurityConfig {
 	private final ResourceLoader resourceLoader;
 
 	private static final String[] PUBLIC_ENDPOINTS = {
-			"/api/v1/auth/**",
+			"/api/v1/auth/register",
+			"/api/v1/auth/token",
+			"/api/v1/auth/forgot-password",
+			"/api/v1/auth/reset-password",
+			"/api/v1/auth/resend-otp",
+			"/api/v1/auth/verify-email",
+			"/api/v1/auth/refresh",
+			"/api/v1/auth/logout",
+			"/api/v1/auth/refresh/mobile",
+			"/api/v1/auth/logout/mobile",
+			"/api/v1/auth/oauth/**",
 			"/actuator/health"
 	};
 
@@ -73,6 +83,7 @@ public class SecurityConfig {
 				)
 				.authorizeHttpRequests((authorize) -> authorize
 						.requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+						.requestMatchers("/api/v1/auth/change-password").authenticated()
 						.requestMatchers("/admin/filter").hasRole("ADMIN")
 						.anyRequest().authenticated()
 				)

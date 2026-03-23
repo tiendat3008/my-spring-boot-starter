@@ -1,5 +1,6 @@
 package com.spring.starter.auth.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.spring.starter.auth.dto.AuthResponse;
+import com.spring.starter.auth.dto.LinkedSocialAccountResponse;
 import com.spring.starter.auth.dto.SocialLoginRequest;
 import com.spring.starter.auth.dto.SocialProfile;
 import com.spring.starter.auth.entity.SocialAccount;
@@ -59,6 +61,60 @@ public class SocialAuthService {
 
     public String issueState(SocialProvider provider) {
         return oAuthStateService.issueState(provider);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LinkedSocialAccountResponse> listLinkedAccounts(String email) {
+        var user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return socialAccountRepository.findAllByUserId(user.getId()).stream()
+                .map(account -> new LinkedSocialAccountResponse(
+                        account.getProvider().name(),
+                        account.getProviderEmail(),
+                        account.getProviderDisplayName(),
+                        account.getProviderAvatarUrl(),
+                        account.getCreatedAt()
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public void linkAccount(String email, SocialProvider provider, SocialLoginRequest request) {
+        var user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (socialAccountRepository.findByUserIdAndProvider(user.getId(), provider).isPresent()) {
+            throw new AppException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_LINKED);
+        }
+
+        if (!oAuthStateService.consumeState(provider, request.state())) {
+            throw new AppException(ErrorCode.OAUTH_STATE_INVALID);
+        }
+
+        SocialProviderClient client = clientFactory.getClient(provider);
+        SocialProfile profile = client.authenticate(request);
+
+        var existingAccount = socialAccountRepository.findByProviderAndProviderUserId(provider, profile.providerUserId());
+        if (existingAccount.isPresent() && !existingAccount.get().getUser().getId().equals(user.getId())) {
+            throw new AppException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_USED);
+        }
+
+        socialAccountRepository.save(buildSocialAccount(user, provider, profile));
+    }
+
+    @Transactional
+    public void unlinkAccount(String email, SocialProvider provider) {
+        var user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        var account = socialAccountRepository.findByUserIdAndProvider(user.getId(), provider)
+                .orElseThrow(() -> new AppException(ErrorCode.SOCIAL_ACCOUNT_NOT_FOUND));
+
+        socialAccountRepository.delete(account);
     }
 
     private User resolveUser(SocialProvider provider, SocialProfile profile) {
