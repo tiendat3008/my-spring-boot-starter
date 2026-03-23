@@ -29,7 +29,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthService {
 
-    static Logger logger = LoggerFactory.getLogger(AuthService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
@@ -95,7 +95,7 @@ public class AuthService {
         refreshTokenService.revokeRefreshToken(jti);
     }
 
-    private AuthResponse generateTokens(User user) {
+    public AuthResponse generateTokens(User user) {
         
         String accessToken = jwtTokenProvider.issueAccessToken(user);
         String refreshToken = jwtTokenProvider.issueRefreshToken(user);

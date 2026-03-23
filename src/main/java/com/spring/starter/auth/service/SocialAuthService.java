@@ -2,12 +2,13 @@ package com.spring.starter.auth.service;
 
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.spring.starter.auth.dto.AuthResponse;
 import com.spring.starter.auth.dto.SocialLoginRequest;
-import com.spring.starter.auth.dto.SocialLoginResponse;
 import com.spring.starter.auth.dto.SocialProfile;
 import com.spring.starter.auth.entity.SocialAccount;
 import com.spring.starter.auth.entity.User;
@@ -17,10 +18,8 @@ import com.spring.starter.auth.oauth2.SocialProviderClient;
 import com.spring.starter.auth.oauth2.SocialProviderClientFactory;
 import com.spring.starter.auth.repository.SocialAccountRepository;
 import com.spring.starter.auth.repository.UserRepository;
-import com.spring.starter.common.config.JwtProperties;
 import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
-import com.spring.starter.common.security.JwtTokenProvider;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -34,14 +33,12 @@ public class SocialAuthService {
     UserRepository userRepository;
     SocialAccountRepository socialAccountRepository;
     PasswordEncoder passwordEncoder;
-    JwtTokenProvider jwtTokenProvider;
-    JwtProperties jwtProperties;
-    RefreshTokenService refreshTokenService;    
+    AuthService authService;  
     OAuthStateService oAuthStateService;
     SocialProviderClientFactory clientFactory;
 
     @Transactional
-    public SocialLoginResponse authenticate(SocialProvider provider, SocialLoginRequest request) {
+    public AuthResponse authenticate(SocialProvider provider, SocialLoginRequest request) {
 
         // Validate state to prevent CSRF attacks
         if (!oAuthStateService.consumeState(provider, request.state())) {
@@ -55,55 +52,47 @@ public class SocialAuthService {
         SocialProfile profile = client.authenticate(request);
 
         // Business logic
-        AccountResolution accountResolution = resolveUser(provider, profile);
+        User user = resolveUser(provider, profile);
 
-        String accessToken = jwtTokenProvider.issueAccessToken(accountResolution.user());
-        String refreshToken = jwtTokenProvider.issueRefreshToken(accountResolution.user());
-
-        String refreshJti = jwtTokenProvider.extractToken(refreshToken).getId();
-        refreshTokenService.storeRefreshToken(
-                accountResolution.user().getId().toString(),
-                refreshJti,
-                jwtProperties.refreshTokenExpirySeconds());
-
-        return new SocialLoginResponse(
-                accessToken,
-                refreshToken,
-                "Bearer",
-                jwtProperties.accessTokenExpirySeconds(),
-                new SocialLoginResponse.UserInfo(
-                        accountResolution.user().getId(),
-                        accountResolution.user().getEmail(),
-                        profile.displayName(),
-                        profile.avatarUrl(),
-                        accountResolution.newUser()
-                )
-        );
+        return authService.generateTokens(user);
     }
 
     public String issueState(SocialProvider provider) {
         return oAuthStateService.issueState(provider);
     }
 
-    private AccountResolution resolveUser(SocialProvider provider, SocialProfile profile) {
+    private User resolveUser(SocialProvider provider, SocialProfile profile) {
         return socialAccountRepository
-                .findByProviderAndProviderUserId(provider, profile.providerUserId())
-                .map(existingSocial -> new AccountResolution(existingSocial.getUser(), false))
-                .orElseGet(() -> createOrLinkUser(provider, profile));
+            .findByProviderAndProviderUserId(provider, profile.providerUserId())
+            .map(SocialAccount::getUser)
+            .orElseGet(() -> createOrLinkUser(provider, profile));
     }
 
-    private AccountResolution createOrLinkUser(SocialProvider provider, SocialProfile profile) {
+    private User createOrLinkUser(SocialProvider provider, SocialProfile profile) {
+        return userRepository.findByEmail(profile.email())
+            // If email already exists, link the social account to the existing user
+            .map(existingUser -> {
+                socialAccountRepository.save(buildSocialAccount(existingUser, provider, profile));
+                return existingUser;
+            })
+            // If email does not exist, create a new user and link the social account
+            // try-catch to handle potential race condition
+            .orElseGet(() -> {
+                try {
+                    User newUser = createUser(profile.email());
+                    socialAccountRepository.save(buildSocialAccount(newUser, provider, profile));
+                    return newUser;
+                } catch (DataIntegrityViolationException e) {
+                    User existingUser = userRepository.findByEmail(profile.email())
+                        .orElseThrow(() -> new IllegalStateException("Concurrent user creation conflict", e));
+                    socialAccountRepository.save(buildSocialAccount(existingUser, provider, profile));
+                    return existingUser;
+                }
+            });
+    }
 
-        boolean[] isNewUser = new boolean[] { false };
-
-        User user = userRepository
-                .findByEmail(profile.email())
-                .orElseGet(() -> {
-                    isNewUser[0] = true;
-                    return createUser(profile.email());
-                });
-
-        SocialAccount socialAccount = SocialAccount.builder()
+    private SocialAccount buildSocialAccount(User user, SocialProvider provider, SocialProfile profile) {
+        return SocialAccount.builder()
                 .user(user)
                 .provider(provider)
                 .providerUserId(profile.providerUserId())
@@ -111,24 +100,15 @@ public class SocialAuthService {
                 .providerDisplayName(profile.displayName())
                 .providerAvatarUrl(profile.avatarUrl())
                 .build();
-
-        socialAccountRepository.save(socialAccount);
-
-        return new AccountResolution(user, isNewUser[0]);
     }
 
     private User createUser(String email) {
-
+        // Social login users have no password — store random hash as placeholder
         User user = User.builder()
                 .email(email)
                 .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .build();
-
         user.addRole(Role.USER);
-
         return userRepository.save(user);
-    }
-
-    private record AccountResolution(User user, boolean newUser) {
     }
 }

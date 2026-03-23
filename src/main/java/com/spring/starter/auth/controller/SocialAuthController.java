@@ -15,8 +15,8 @@ import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
 import com.spring.starter.common.security.CookieService;
 import com.spring.starter.auth.dto.SocialLoginRequest;
+import com.spring.starter.auth.dto.AuthResponse;
 import com.spring.starter.auth.dto.OAuthStateResponse;
-import com.spring.starter.auth.dto.SocialLoginResponse;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -42,13 +42,13 @@ public class SocialAuthController {
     }
 
     @PostMapping("/callback/{provider}")
-    ResponseEntity<ApiResponse<SocialLoginResponse>> callback(
+    ResponseEntity<ApiResponse<AuthResponse>> callback(
             @PathVariable String provider,
             @Valid @RequestBody SocialLoginRequest request,
             HttpServletResponse response
     ) {
         SocialProvider socialProvider = parseProvider(provider);
-        SocialLoginResponse result = socialAuthService.authenticate(socialProvider, request);
+        AuthResponse result = socialAuthService.authenticate(socialProvider, request);
 
         cookieService.addRefreshToken(response, result.refreshToken());
 
