@@ -18,6 +18,7 @@ import com.spring.starter.auth.dto.SocialLoginRequest;
 import com.spring.starter.auth.dto.AuthResponse;
 import com.spring.starter.auth.dto.OAuthStateResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -45,10 +46,11 @@ public class SocialAuthController {
     ResponseEntity<ApiResponse<AuthResponse>> callback(
             @PathVariable String provider,
             @Valid @RequestBody SocialLoginRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response
     ) {
         SocialProvider socialProvider = parseProvider(provider);
-        AuthResponse result = socialAuthService.authenticate(socialProvider, request);
+        AuthResponse result = socialAuthService.authenticate(socialProvider, request, httpRequest);
 
         cookieService.addRefreshToken(response, result.refreshToken());
 

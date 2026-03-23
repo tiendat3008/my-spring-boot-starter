@@ -23,6 +23,8 @@ import com.spring.starter.auth.repository.UserRepository;
 import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -40,7 +42,7 @@ public class SocialAuthService {
     SocialProviderClientFactory clientFactory;
 
     @Transactional
-    public AuthResponse authenticate(SocialProvider provider, SocialLoginRequest request) {
+    public AuthResponse authenticate(SocialProvider provider, SocialLoginRequest request, HttpServletRequest httpRequest) {
 
         // Validate state to prevent CSRF attacks
         if (!oAuthStateService.consumeState(provider, request.state())) {
@@ -56,7 +58,11 @@ public class SocialAuthService {
         // Business logic
         User user = resolveUser(provider, profile);
 
-        return authService.generateTokens(user);
+        return authService.generateTokens(user, httpRequest);
+    }
+
+    public AuthResponse authenticate(SocialProvider provider, SocialLoginRequest request) {
+        return authenticate(provider, request, null);
     }
 
     public String issueState(SocialProvider provider) {
