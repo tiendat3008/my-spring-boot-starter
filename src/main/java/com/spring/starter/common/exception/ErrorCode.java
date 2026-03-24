@@ -49,7 +49,9 @@ public enum ErrorCode {
 
     FILE_UPLOAD_FAILED("FILE_UPLOAD_FAILED", "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
     FILE_DELETE_FAILED("FILE_DELETE_FAILED", "Failed to delete file", HttpStatus.INTERNAL_SERVER_ERROR),
-    PRESIGNED_URL_GENERATION_FAILED("PRESIGNED_URL_GENERATION_FAILED", "Failed to generate pre-signed URL", HttpStatus.INTERNAL_SERVER_ERROR)
+    PRESIGNED_URL_GENERATION_FAILED("PRESIGNED_URL_GENERATION_FAILED", "Failed to generate pre-signed URL", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_FILE_SIZE("INVALID_FILE_SIZE", "Invalid file size", HttpStatus.BAD_REQUEST),
+    INVALID_CONTENT_TYPE("INVALID_CONTENT_TYPE", "Invalid content type", HttpStatus.BAD_REQUEST)
     ;
 
     private final String code;

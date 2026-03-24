@@ -33,5 +33,7 @@ public interface UserProfileMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "avatarUrl", ignore = true)
+    @Mapping(target = "avatarObjectKey", ignore = true)
     void updateProfile(@MappingTarget UserProfile profile, UpdateMyProfileRequest request);
 }

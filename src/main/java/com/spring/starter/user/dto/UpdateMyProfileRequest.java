@@ -9,9 +9,6 @@ public record UpdateMyProfileRequest(
         @Size(max = 100, message = "INVALID_NAME_SIZE")
         String lastName,
 
-        @Size(max = 512, message = "INVALID_AVATAR_URL_SIZE")
-        String avatarUrl,
-
         @Size(max = 1000, message = "INVALID_BIO_SIZE")
         String bio,
 

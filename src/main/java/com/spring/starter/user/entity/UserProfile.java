@@ -36,6 +36,9 @@ public class UserProfile extends BaseEntity {
     @Column(name = "avatar_url", length = 512)
     String avatarUrl;
 
+    @Column(name = "avatar_object_key", length = 512)
+    String avatarObjectKey;
+
     @Column(name = "bio", columnDefinition = "TEXT")
     String bio;
 

@@ -48,3 +48,4 @@ app.pub
 application-prod.yml
 .env.local
 .env.*.local
+.github

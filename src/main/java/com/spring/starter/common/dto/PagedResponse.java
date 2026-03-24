@@ -17,7 +17,16 @@ public record PagedResponse<T>(
             int size,
             long totalElements
     ) {
-        int totalPages = size == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
-        return new PagedResponse<>(content, page, size, totalElements, totalPages, page >= totalPages - 1);
+        int totalPages = size == 0
+                ? 0
+                : (int) Math.ceil((double) totalElements / size);
+
+        return new PagedResponse<>(
+                content,
+                page,
+                size,
+                totalElements,
+                totalPages,
+                page >= totalPages - 1);
     }
 }
