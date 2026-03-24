@@ -8,9 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 
 @ConfigurationProperties(prefix = "app.oauth2")
-public record OAuth2Properties(
-        @NotEmpty Map<String, @Valid ProviderProperties> providers
-) {
+public record OAuth2Properties(@NotEmpty Map<String, @Valid ProviderProperties> providers) {
 
     public ProviderProperties getProvider(String provider) {
         ProviderProperties properties = providers.get(provider);
@@ -22,11 +20,5 @@ public record OAuth2Properties(
         return properties;
     }
 
-    public record ProviderProperties(
-        String clientId,
-        String clientSecret,
-        String tokenUri,
-        String userInfoUri
-    ) {
-    }
+    public record ProviderProperties(String clientId, String clientSecret, String tokenUri, String userInfoUri) {}
 }

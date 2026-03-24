@@ -26,7 +26,6 @@ import com.spring.starter.user.entity.UserProfile;
 import com.spring.starter.user.repository.UserProfileRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -70,15 +69,10 @@ public class AuthService {
         authRecoveryService.sendVerifyEmailOtp(user.getEmail());
 
         return new RegisterResponse(
-                user.getId(),
-                user.getEmail(),
-                extractRoles(user),
-                profile.getFirstName(),
-                profile.getLastName()
-        );
+                user.getId(), user.getEmail(), extractRoles(user), profile.getFirstName(), profile.getLastName());
     }
 
-    public AuthResponse authenticate(AuthRequest request, HttpServletRequest httpRequest){
+    public AuthResponse authenticate(AuthRequest request, HttpServletRequest httpRequest) {
 
         var user = userRepository
                 .findByEmail(request.email())
@@ -86,8 +80,7 @@ public class AuthService {
 
         boolean authenticated = passwordEncoder.matches(request.password(), user.getPasswordHash());
 
-        if (!authenticated)
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         if (user.getStatus() == UserStatus.UNVERIFIED) {
             throw new AppException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
@@ -109,9 +102,7 @@ public class AuthService {
             throw new AppException(ErrorCode.TOKEN_REVOKED);
         }
 
-        var user = userRepository
-                .findByEmail(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         refreshTokenService.revokeRefreshToken(jti);
 
@@ -129,9 +120,7 @@ public class AuthService {
 
     @Transactional
     public void changePassword(String email, ChangePasswordRequest request, String refreshToken) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
             throw new AppException(ErrorCode.INVALID_CURRENT_PASSWORD);
@@ -150,7 +139,7 @@ public class AuthService {
     }
 
     public AuthResponse generateTokens(User user, HttpServletRequest httpRequest) {
-        
+
         String accessToken = jwtTokenProvider.issueAccessToken(user);
         String refreshToken = jwtTokenProvider.issueRefreshToken(user);
 
@@ -162,11 +151,7 @@ public class AuthService {
                 jwtProperties.refreshTokenExpirySeconds(),
                 sessionMetadata);
 
-        return new AuthResponse(
-                accessToken,
-                refreshToken,
-                "Bearer",
-                jwtProperties.accessTokenExpirySeconds());
+        return new AuthResponse(accessToken, refreshToken, "Bearer", jwtProperties.accessTokenExpirySeconds());
     }
 
     public AuthResponse generateTokens(User user) {
@@ -175,28 +160,23 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public List<UserSessionResponse> listSessions(String email) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return refreshTokenService.listUserSessionIds(user.getId().toString()).stream()
-            .map(sessionId -> {
-                SessionMetadata metadata = refreshTokenService.getSessionMetadata(sessionId);
+                .map(sessionId -> {
+                    SessionMetadata metadata = refreshTokenService.getSessionMetadata(sessionId);
 
-                return new UserSessionResponse(
-                    sessionId,
-                    metadata == null ? null : metadata.ipAddress(),
-                    metadata == null ? null : metadata.userAgent(),
-                    metadata == null ? null : metadata.loginTime()
-                );
-            })
+                    return new UserSessionResponse(
+                            sessionId,
+                            metadata == null ? null : metadata.ipAddress(),
+                            metadata == null ? null : metadata.userAgent(),
+                            metadata == null ? null : metadata.loginTime());
+                })
                 .toList();
     }
 
     public void revokeSession(String email, String sessionId) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         boolean revoked = refreshTokenService.revokeUserSession(user.getId().toString(), sessionId);
         if (!revoked) {
@@ -205,9 +185,7 @@ public class AuthService {
     }
 
     private List<String> extractRoles(User user) {
-        return user.getRoles().stream()
-                .map(ur -> ur.getRole().name())
-                .toList();
+        return user.getRoles().stream().map(ur -> ur.getRole().name()).toList();
     }
 
     private SessionMetadata buildSessionMetadata(HttpServletRequest request) {
@@ -215,11 +193,7 @@ public class AuthService {
             return new SessionMetadata(null, null, Instant.now());
         }
 
-        return new SessionMetadata(
-                extractClientIp(request),
-                request.getHeader("User-Agent"),
-                Instant.now()
-        );
+        return new SessionMetadata(extractClientIp(request), request.getHeader("User-Agent"), Instant.now());
     }
 
     private String extractClientIp(HttpServletRequest request) {

@@ -9,7 +9,7 @@ import com.spring.starter.auth.entity.SocialAccount;
 import com.spring.starter.auth.enums.SocialProvider;
 
 public interface SocialAccountRepository extends JpaRepository<SocialAccount, Long> {
-    
+
     Optional<SocialAccount> findByProviderAndProviderUserId(SocialProvider provider, String providerUserId);
 
     List<SocialAccount> findAllByUserId(Long userId);

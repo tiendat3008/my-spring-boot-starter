@@ -54,13 +54,20 @@ class UserProfileServiceTest {
     @Test
     void getMyProfile_shouldCreateProfileIfMissing() {
         var user = buildUser();
-        var persistedProfile = UserProfile.builder().userId(1L).preferredLanguage("vi").preferredCurrency("VND").build();
-        var response = new UserMeResponse(1L, "user@example.com", user.getStatus(), List.of("USER"), null, null, null, null, "vi", "VND");
+        var persistedProfile = UserProfile.builder()
+                .userId(1L)
+                .preferredLanguage("vi")
+                .preferredCurrency("VND")
+                .build();
+        var response = new UserMeResponse(
+                1L, "user@example.com", user.getStatus(), List.of("USER"), null, null, null, null, "vi", "VND");
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(userProfileRepository.findByUserId(1L)).thenReturn(Optional.empty());
-        when(userProfileRepository.save(org.mockito.ArgumentMatchers.any(UserProfile.class))).thenReturn(persistedProfile);
-        when(userProfileMapper.toUserMeResponse(user, persistedProfile, List.of("USER"))).thenReturn(response);
+        when(userProfileRepository.save(org.mockito.ArgumentMatchers.any(UserProfile.class)))
+                .thenReturn(persistedProfile);
+        when(userProfileMapper.toUserMeResponse(user, persistedProfile, List.of("USER")))
+                .thenReturn(response);
 
         var actual = userProfileService.getMyProfile("user@example.com");
 
@@ -71,9 +78,14 @@ class UserProfileServiceTest {
     @Test
     void updateMyProfile_shouldSaveAndReturnMappedResult() {
         var user = buildUser();
-        var profile = UserProfile.builder().userId(1L).preferredLanguage("vi").preferredCurrency("VND").build();
+        var profile = UserProfile.builder()
+                .userId(1L)
+                .preferredLanguage("vi")
+                .preferredCurrency("VND")
+                .build();
         var request = new UpdateMyProfileRequest("Dat", "Tran", "Bio", "en", "USD");
-        var response = new UserMeResponse(1L, "user@example.com", user.getStatus(), List.of("USER"), "Dat", "Tran", null, "Bio", "en", "USD");
+        var response = new UserMeResponse(
+                1L, "user@example.com", user.getStatus(), List.of("USER"), "Dat", "Tran", null, "Bio", "en", "USD");
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(userProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
@@ -90,9 +102,23 @@ class UserProfileServiceTest {
     @Test
     void uploadAvatar_shouldUploadAndReturnMappedResult() {
         var user = buildUser();
-        var profile = UserProfile.builder().userId(1L).preferredLanguage("vi").preferredCurrency("VND").build();
+        var profile = UserProfile.builder()
+                .userId(1L)
+                .preferredLanguage("vi")
+                .preferredCurrency("VND")
+                .build();
         var file = new MockMultipartFile("file", "avatar.png", "image/png", "avatar-bytes".getBytes());
-        var response = new UserMeResponse(1L, "user@example.com", user.getStatus(), List.of("USER"), null, null, "http://localhost:9000/hdcamp/avatars/1/avatar.png", null, "vi", "VND");
+        var response = new UserMeResponse(
+                1L,
+                "user@example.com",
+                user.getStatus(),
+                List.of("USER"),
+                null,
+                null,
+                "http://localhost:9000/hdcamp/avatars/1/avatar.png",
+                null,
+                "vi",
+                "VND");
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(userProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
@@ -160,7 +186,17 @@ class UserProfileServiceTest {
                 .avatarObjectKey("avatars/1/old_avatar.png")
                 .build();
         var file = new MockMultipartFile("file", "avatar-new.png", "image/png", "avatar".getBytes());
-        var response = new UserMeResponse(1L, "user@example.com", user.getStatus(), List.of("USER"), null, null, "http://localhost/new", null, "vi", "VND");
+        var response = new UserMeResponse(
+                1L,
+                "user@example.com",
+                user.getStatus(),
+                List.of("USER"),
+                null,
+                null,
+                "http://localhost/new",
+                null,
+                "vi",
+                "VND");
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(userProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
@@ -174,10 +210,7 @@ class UserProfileServiceTest {
     }
 
     private User buildUser() {
-        User user = User.builder()
-            .email("user@example.com")
-            .roles(Set.of())
-            .build();
+        User user = User.builder().email("user@example.com").roles(Set.of()).build();
 
         user.setId(1L);
 

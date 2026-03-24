@@ -13,15 +13,14 @@ import com.spring.starter.common.config.StorageProperties;
 @SpringBootApplication
 @EnableConfigurationProperties({
     JwtProperties.class,
-	OAuth2Properties.class,
-	MinioProperties.class,
-	StorageProperties.class,
+    OAuth2Properties.class,
+    MinioProperties.class,
+    StorageProperties.class,
 })
-@EnableAsync   // Required for @Async in MailService
+@EnableAsync // Required for @Async in MailService
 public class MySpringBootStarterApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MySpringBootStarterApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(MySpringBootStarterApplication.class, args);
+    }
 }

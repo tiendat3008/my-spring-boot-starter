@@ -13,12 +13,11 @@ import com.spring.starter.common.exception.ErrorCode;
 
 @Component
 public class SocialProviderClientFactory {
-    
+
     private final Map<SocialProvider, SocialProviderClient> clients;
 
     public SocialProviderClientFactory(List<SocialProviderClient> clientList) {
-        this.clients = clientList.stream()
-                .collect(Collectors.toMap(SocialProviderClient::provider, c -> c));
+        this.clients = clientList.stream().collect(Collectors.toMap(SocialProviderClient::provider, c -> c));
     }
 
     public SocialProviderClient getClient(SocialProvider provider) {

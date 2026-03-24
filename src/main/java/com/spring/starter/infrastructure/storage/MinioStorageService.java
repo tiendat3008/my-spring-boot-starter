@@ -13,10 +13,10 @@ import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
 
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.Http.Method;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
-import io.minio.Http.Method;
 
 /**
  * {@link StorageService} implementation backed by MinIO (S3-compatible).
@@ -36,9 +36,7 @@ public class MinioStorageService implements StorageService {
     private final String endpoint;
 
     public MinioStorageService(
-            MinioClient minioClient,
-            StorageProperties storageProperties,
-            MinioProperties minioProperties) {
+            MinioClient minioClient, StorageProperties storageProperties, MinioProperties minioProperties) {
         this.minioClient = minioClient;
         this.bucket = storageProperties.bucket();
         this.endpoint = minioProperties.endpoint();
@@ -48,10 +46,7 @@ public class MinioStorageService implements StorageService {
     public String upload(String objectKey, InputStream inputStream, String contentType, long sizeBytes) {
         try {
             minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(objectKey)
-                            .stream(inputStream, sizeBytes, -1L)
+                    PutObjectArgs.builder().bucket(bucket).object(objectKey).stream(inputStream, sizeBytes, -1L)
                             .contentType(contentType)
                             .build());
             var url = "%s/%s/%s".formatted(endpoint, bucket, objectKey);
@@ -67,10 +62,7 @@ public class MinioStorageService implements StorageService {
     public void delete(String objectKey) {
         try {
             minioClient.removeObject(
-                    RemoveObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(objectKey)
-                            .build());
+                    RemoveObjectArgs.builder().bucket(bucket).object(objectKey).build());
             logger.debug("Deleted object: {}", objectKey);
         } catch (Exception ex) {
             logger.error("Failed to delete object: {}", objectKey, ex);
@@ -81,13 +73,12 @@ public class MinioStorageService implements StorageService {
     @Override
     public String generatePresignedUrl(String objectKey, int expirySeconds) {
         try {
-            return minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .method(Method.GET)
-                            .bucket(bucket)
-                            .object(objectKey)
-                            .expiry(expirySeconds, TimeUnit.SECONDS)
-                            .build());
+            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .method(Method.GET)
+                    .bucket(bucket)
+                    .object(objectKey)
+                    .expiry(expirySeconds, TimeUnit.SECONDS)
+                    .build());
         } catch (Exception ex) {
             logger.error("Failed to generate presigned URL for: {}", objectKey, ex);
             throw new AppException(ErrorCode.PRESIGNED_URL_GENERATION_FAILED);

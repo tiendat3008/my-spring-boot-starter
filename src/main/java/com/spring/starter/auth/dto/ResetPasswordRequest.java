@@ -5,16 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record ResetPasswordRequest(
-        @NotBlank(message = "FIELD_REQUIRED")
-        @Email(message = "INVALID_EMAIL")
-        String email,
-
-        @NotBlank(message = "FIELD_REQUIRED")
-        @Size(min = 6, max = 6, message = "INVALID_OTP_SIZE")
-        String otp,
-
-        @NotBlank(message = "FIELD_REQUIRED")
-        @Size(min = 6, max = 100, message = "INVALID_PASSWORD_SIZE")
-        String newPassword
-) {
-}
+        @NotBlank(message = "FIELD_REQUIRED") @Email(message = "INVALID_EMAIL") String email,
+        @NotBlank(message = "FIELD_REQUIRED") @Size(min = 6, max = 6, message = "INVALID_OTP_SIZE") String otp,
+        @NotBlank(message = "FIELD_REQUIRED") @Size(min = 6, max = 100, message = "INVALID_PASSWORD_SIZE")
+                String newPassword) {}

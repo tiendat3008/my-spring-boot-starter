@@ -33,11 +33,8 @@ public class UserProfileService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserProfileService.class);
     private static final long MAX_AVATAR_SIZE_BYTES = 5L * 1024 * 1024;
-    private static final Set<String> ALLOWED_AVATAR_CONTENT_TYPES = Set.of(
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/gif");
+    private static final Set<String> ALLOWED_AVATAR_CONTENT_TYPES =
+            Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
 
     UserRepository userRepository;
     UserProfileRepository userProfileRepository;
@@ -46,22 +43,19 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public UserMeResponse getMyProfile(String email) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         var profile = userProfileRepository
                 .findByUserId(user.getId())
-                .orElseGet(() -> userProfileRepository.save(UserProfile.builder().userId(user.getId()).build()));
+                .orElseGet(() -> userProfileRepository.save(
+                        UserProfile.builder().userId(user.getId()).build()));
 
         return userProfileMapper.toUserMeResponse(user, profile, extractRoles(user));
     }
 
     @Transactional
     public UserMeResponse updateMyProfile(String email, UpdateMyProfileRequest request) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         var profile = userProfileRepository
                 .findByUserId(user.getId())
@@ -77,9 +71,7 @@ public class UserProfileService {
     public UserMeResponse uploadAvatar(String email, MultipartFile file) {
         validateAvatarFile(file);
 
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         var profile = userProfileRepository
                 .findByUserId(user.getId())
@@ -130,7 +122,9 @@ public class UserProfileService {
     }
 
     private void cleanupOldAvatar(String oldAvatarObjectKey, String newAvatarObjectKey) {
-        if (oldAvatarObjectKey == null || oldAvatarObjectKey.isBlank() || oldAvatarObjectKey.equals(newAvatarObjectKey)) {
+        if (oldAvatarObjectKey == null
+                || oldAvatarObjectKey.isBlank()
+                || oldAvatarObjectKey.equals(newAvatarObjectKey)) {
             return;
         }
 
@@ -142,8 +136,6 @@ public class UserProfileService {
     }
 
     private List<String> extractRoles(User user) {
-        return user.getRoles().stream()
-                .map(ur -> ur.getRole().name())
-                .toList();
+        return user.getRoles().stream().map(ur -> ur.getRole().name()).toList();
     }
 }

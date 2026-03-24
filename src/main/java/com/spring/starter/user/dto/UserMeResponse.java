@@ -14,6 +14,4 @@ public record UserMeResponse(
         String avatarUrl,
         String bio,
         String preferredLanguage,
-        String preferredCurrency
-) {
-}
+        String preferredCurrency) {}

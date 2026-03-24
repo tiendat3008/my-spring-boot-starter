@@ -26,15 +26,14 @@ public class ValidationUtil {
 
         message = message.replace("{field}", fieldError.getField());
 
-        Map<String, Object> attributes = fieldError.unwrap(ConstraintViolation.class)
+        Map<String, Object> attributes = fieldError
+                .unwrap(ConstraintViolation.class)
                 .getConstraintDescriptor()
                 .getAttributes();
 
         for (var entry : attributes.entrySet()) {
 
-            message = message.replace(
-                    "{" + entry.getKey() + "}",
-                    String.valueOf(entry.getValue()));
+            message = message.replace("{" + entry.getKey() + "}", String.valueOf(entry.getValue()));
         }
 
         return message;

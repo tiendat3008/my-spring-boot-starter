@@ -46,7 +46,9 @@ public class AuthRecoveryService {
     SecureRandom secureRandom = new SecureRandom();
 
     public void forgotPassword(ForgotPasswordRequest request) {
-        userRepository.findByEmail(request.email()).ifPresent(user -> issueOtp(request.email(), PURPOSE_RESET_PASSWORD));
+        userRepository
+                .findByEmail(request.email())
+                .ifPresent(user -> issueOtp(request.email(), PURPOSE_RESET_PASSWORD));
     }
 
     public void resendOtp(ResendOtpRequest request) {

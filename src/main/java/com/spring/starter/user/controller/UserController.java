@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,18 +37,14 @@ public class UserController {
 
     @PutMapping("/me")
     ResponseEntity<ApiResponse<UserMeResponse>> updateMe(
-            Authentication authentication,
-            @Valid @RequestBody UpdateMyProfileRequest request
-    ) {
+            Authentication authentication, @Valid @RequestBody UpdateMyProfileRequest request) {
         var result = userProfileService.updateMyProfile(authentication.getName(), request);
         return ResponseEntity.ok(ApiResponse.success("Profile updated", result));
     }
 
     @PostMapping(value = "/me/avatar", consumes = "multipart/form-data")
     ResponseEntity<ApiResponse<UserMeResponse>> uploadAvatar(
-            Authentication authentication,
-            @RequestParam("file") MultipartFile file
-    ) {
+            Authentication authentication, @RequestParam("file") MultipartFile file) {
         var result = userProfileService.uploadAvatar(authentication.getName(), file);
         return ResponseEntity.ok(ApiResponse.success("Avatar uploaded", result));
     }

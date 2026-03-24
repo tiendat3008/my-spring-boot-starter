@@ -1,7 +1,7 @@
 package com.spring.starter.auth.service;
 
-import java.time.Instant;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
@@ -102,11 +102,7 @@ public class RefreshTokenService {
             }
         }
 
-        return new SessionMetadata(
-                asString(entries.get("ipAddress")),
-                asString(entries.get("userAgent")),
-                loginTime
-        );
+        return new SessionMetadata(asString(entries.get("ipAddress")), asString(entries.get("userAgent")), loginTime);
     }
 
     private String userSessionsKey(String userId) {

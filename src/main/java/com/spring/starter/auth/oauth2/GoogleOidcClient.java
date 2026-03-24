@@ -74,19 +74,12 @@ public class GoogleOidcClient implements SocialProviderClient {
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-        return new SocialProfile(
-                providerUserId,
-                email,
-                emailVerified,
-                displayName,
-                avatarUrl
-        );
+        return new SocialProfile(providerUserId, email, emailVerified, displayName, avatarUrl);
     }
 
     private GoogleTokenResponse exchangeCode(SocialLoginRequest request) {
-        
-        var providerProperties = oAuth2Properties
-                .getProvider(provider().name().toLowerCase());
+
+        var providerProperties = oAuth2Properties.getProvider(provider().name().toLowerCase());
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("code", request.code());
@@ -100,7 +93,8 @@ public class GoogleOidcClient implements SocialProviderClient {
         }
 
         try {
-            GoogleTokenResponse response = restClient.post()
+            GoogleTokenResponse response = restClient
+                    .post()
                     .uri(providerProperties.tokenUri())
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .accept(MediaType.APPLICATION_JSON)
@@ -108,14 +102,16 @@ public class GoogleOidcClient implements SocialProviderClient {
                     .retrieve()
                     .body(GoogleTokenResponse.class);
 
-            if (response == null || response.idToken() == null || response.idToken().isBlank()) {
+            if (response == null
+                    || response.idToken() == null
+                    || response.idToken().isBlank()) {
                 throw new AppException(ErrorCode.OAUTH_EXCHANGE_FAILED);
             }
 
             return response;
         } catch (RestClientResponseException ex) {
-            logger.error("Google exchange failed: status={}, body={}",
-                    ex.getStatusCode(), ex.getResponseBodyAsString());
+            logger.error(
+                    "Google exchange failed: status={}, body={}", ex.getStatusCode(), ex.getResponseBodyAsString());
             throw new AppException(ErrorCode.OAUTH_EXCHANGE_FAILED);
         }
     }

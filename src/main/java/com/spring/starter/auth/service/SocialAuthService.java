@@ -24,7 +24,6 @@ import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -37,12 +36,13 @@ public class SocialAuthService {
     UserRepository userRepository;
     SocialAccountRepository socialAccountRepository;
     PasswordEncoder passwordEncoder;
-    AuthService authService;  
+    AuthService authService;
     OAuthStateService oAuthStateService;
     SocialProviderClientFactory clientFactory;
 
     @Transactional
-    public AuthResponse authenticate(SocialProvider provider, SocialLoginRequest request, HttpServletRequest httpRequest) {
+    public AuthResponse authenticate(
+            SocialProvider provider, SocialLoginRequest request, HttpServletRequest httpRequest) {
 
         // Validate state to prevent CSRF attacks
         if (!oAuthStateService.consumeState(provider, request.state())) {
@@ -71,9 +71,7 @@ public class SocialAuthService {
 
     @Transactional(readOnly = true)
     public List<LinkedSocialAccountResponse> listLinkedAccounts(String email) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         return socialAccountRepository.findAllByUserId(user.getId()).stream()
                 .map(account -> new LinkedSocialAccountResponse(
@@ -81,18 +79,17 @@ public class SocialAuthService {
                         account.getProviderEmail(),
                         account.getProviderDisplayName(),
                         account.getProviderAvatarUrl(),
-                        account.getCreatedAt()
-                ))
+                        account.getCreatedAt()))
                 .toList();
     }
 
     @Transactional
     public void linkAccount(String email, SocialProvider provider, SocialLoginRequest request) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (socialAccountRepository.findByUserIdAndProvider(user.getId(), provider).isPresent()) {
+        if (socialAccountRepository
+                .findByUserIdAndProvider(user.getId(), provider)
+                .isPresent()) {
             throw new AppException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_LINKED);
         }
 
@@ -103,8 +100,10 @@ public class SocialAuthService {
         SocialProviderClient client = clientFactory.getClient(provider);
         SocialProfile profile = client.authenticate(request);
 
-        var existingAccount = socialAccountRepository.findByProviderAndProviderUserId(provider, profile.providerUserId());
-        if (existingAccount.isPresent() && !existingAccount.get().getUser().getId().equals(user.getId())) {
+        var existingAccount =
+                socialAccountRepository.findByProviderAndProviderUserId(provider, profile.providerUserId());
+        if (existingAccount.isPresent()
+                && !existingAccount.get().getUser().getId().equals(user.getId())) {
             throw new AppException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_USED);
         }
 
@@ -113,11 +112,10 @@ public class SocialAuthService {
 
     @Transactional
     public void unlinkAccount(String email, SocialProvider provider) {
-        var user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        var account = socialAccountRepository.findByUserIdAndProvider(user.getId(), provider)
+        var account = socialAccountRepository
+                .findByUserIdAndProvider(user.getId(), provider)
                 .orElseThrow(() -> new AppException(ErrorCode.SOCIAL_ACCOUNT_NOT_FOUND));
 
         socialAccountRepository.delete(account);
@@ -125,32 +123,34 @@ public class SocialAuthService {
 
     private User resolveUser(SocialProvider provider, SocialProfile profile) {
         return socialAccountRepository
-            .findByProviderAndProviderUserId(provider, profile.providerUserId())
-            .map(SocialAccount::getUser)
-            .orElseGet(() -> createOrLinkUser(provider, profile));
+                .findByProviderAndProviderUserId(provider, profile.providerUserId())
+                .map(SocialAccount::getUser)
+                .orElseGet(() -> createOrLinkUser(provider, profile));
     }
 
     private User createOrLinkUser(SocialProvider provider, SocialProfile profile) {
-        return userRepository.findByEmail(profile.email())
-            // If email already exists, link the social account to the existing user
-            .map(existingUser -> {
-                socialAccountRepository.save(buildSocialAccount(existingUser, provider, profile));
-                return existingUser;
-            })
-            // If email does not exist, create a new user and link the social account
-            // try-catch to handle potential race condition
-            .orElseGet(() -> {
-                try {
-                    User newUser = createUser(profile.email());
-                    socialAccountRepository.save(buildSocialAccount(newUser, provider, profile));
-                    return newUser;
-                } catch (DataIntegrityViolationException e) {
-                    User existingUser = userRepository.findByEmail(profile.email())
-                        .orElseThrow(() -> new IllegalStateException("Concurrent user creation conflict", e));
+        return userRepository
+                .findByEmail(profile.email())
+                // If email already exists, link the social account to the existing user
+                .map(existingUser -> {
                     socialAccountRepository.save(buildSocialAccount(existingUser, provider, profile));
                     return existingUser;
-                }
-            });
+                })
+                // If email does not exist, create a new user and link the social account
+                // try-catch to handle potential race condition
+                .orElseGet(() -> {
+                    try {
+                        User newUser = createUser(profile.email());
+                        socialAccountRepository.save(buildSocialAccount(newUser, provider, profile));
+                        return newUser;
+                    } catch (DataIntegrityViolationException e) {
+                        User existingUser = userRepository
+                                .findByEmail(profile.email())
+                                .orElseThrow(() -> new IllegalStateException("Concurrent user creation conflict", e));
+                        socialAccountRepository.save(buildSocialAccount(existingUser, provider, profile));
+                        return existingUser;
+                    }
+                });
     }
 
     private SocialAccount buildSocialAccount(User user, SocialProvider provider, SocialProfile profile) {

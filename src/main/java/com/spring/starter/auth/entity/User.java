@@ -32,7 +32,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User extends BaseEntity {
-    
+
     @Column(unique = true)
     String email;
 
@@ -43,12 +43,7 @@ public class User extends BaseEntity {
     @Builder.Default
     UserStatus status = UserStatus.ACTIVE;
 
-    @OneToMany(
-        mappedBy = "user",
-        fetch = FetchType.LAZY,
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     Set<UserRole> roles = new HashSet<>();
 

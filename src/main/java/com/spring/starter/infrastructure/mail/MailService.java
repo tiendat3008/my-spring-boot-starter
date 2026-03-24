@@ -55,9 +55,7 @@ public class MailService {
      */
     @Async
     public void sendOtpEmail(String to, String otpCode, String purpose) {
-        var variables = Map.of(
-                "otpCode", otpCode,
-                "expiryMinutes", "5");
+        var variables = Map.of("otpCode", otpCode, "expiryMinutes", "5");
         sendHtmlEmail(to, resolveSubject(purpose), "mail/otp", variables);
     }
 

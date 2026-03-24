@@ -7,6 +7,4 @@ public record LinkedSocialAccountResponse(
         String providerEmail,
         String providerDisplayName,
         String providerAvatarUrl,
-        Instant linkedAt
-) {
-}
+        Instant linkedAt) {}

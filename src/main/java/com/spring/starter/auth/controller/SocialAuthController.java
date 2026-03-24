@@ -8,15 +8,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.spring.starter.auth.dto.AuthResponse;
+import com.spring.starter.auth.dto.OAuthStateResponse;
+import com.spring.starter.auth.dto.SocialLoginRequest;
 import com.spring.starter.auth.enums.SocialProvider;
 import com.spring.starter.auth.service.SocialAuthService;
 import com.spring.starter.common.dto.ApiResponse;
 import com.spring.starter.common.exception.AppException;
 import com.spring.starter.common.exception.ErrorCode;
 import com.spring.starter.common.security.CookieService;
-import com.spring.starter.auth.dto.SocialLoginRequest;
-import com.spring.starter.auth.dto.AuthResponse;
-import com.spring.starter.auth.dto.OAuthStateResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,8 +47,7 @@ public class SocialAuthController {
             @PathVariable String provider,
             @Valid @RequestBody SocialLoginRequest request,
             HttpServletRequest httpRequest,
-            HttpServletResponse response
-    ) {
+            HttpServletResponse response) {
         SocialProvider socialProvider = parseProvider(provider);
         AuthResponse result = socialAuthService.authenticate(socialProvider, request, httpRequest);
 
@@ -56,7 +55,7 @@ public class SocialAuthController {
 
         return ResponseEntity.ok(ApiResponse.success(result));
     }
-    
+
     private SocialProvider parseProvider(String provider) {
         try {
             return SocialProvider.from(provider);

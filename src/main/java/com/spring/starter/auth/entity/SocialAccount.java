@@ -22,14 +22,12 @@ import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(
-    name = "social_accounts",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_provider_provider_user_id",
-            columnNames = { "provider", "provider_user_id" }
-        )
-    }
-)
+        name = "social_accounts",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uk_provider_provider_user_id",
+                    columnNames = {"provider", "provider_user_id"})
+        })
 @Getter
 @Setter
 @Builder
@@ -37,7 +35,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SocialAccount extends BaseEntity {
-    
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     User user;

@@ -58,17 +58,12 @@ class SocialAuthServiceTest {
     @InjectMocks
     SocialAuthService socialAuthService;
 
-        @Test
-        void authenticate_shouldForwardHttpRequest_whenStateValid() {
+    @Test
+    void authenticate_shouldForwardHttpRequest_whenStateValid() {
         var request = new SocialLoginRequest("code", "state", null, "http://localhost/callback");
         HttpServletRequest httpRequest = org.mockito.Mockito.mock(HttpServletRequest.class);
         var socialProfile = new com.spring.starter.auth.dto.SocialProfile(
-            "google-123",
-            "user@example.com",
-            true,
-            "Social User",
-            "http://avatar"
-        );
+                "google-123", "user@example.com", true, "Social User", "http://avatar");
         var user = User.builder().email("user@example.com").build();
         var authResponse = new AuthResponse("access", "refresh", "Bearer", 3600L);
 
@@ -76,7 +71,7 @@ class SocialAuthServiceTest {
         when(clientFactory.getClient(SocialProvider.GOOGLE)).thenReturn(socialProviderClient);
         when(socialProviderClient.authenticate(request)).thenReturn(socialProfile);
         when(socialAccountRepository.findByProviderAndProviderUserId(SocialProvider.GOOGLE, "google-123"))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(authService.generateTokens(user, httpRequest)).thenReturn(authResponse);
 
@@ -84,7 +79,7 @@ class SocialAuthServiceTest {
 
         assertThat(result).isEqualTo(authResponse);
         verify(authService).generateTokens(eq(user), eq(httpRequest));
-        }
+    }
 
     @Test
     void listLinkedAccounts_shouldReturnMappedAccounts() {
@@ -114,7 +109,8 @@ class SocialAuthServiceTest {
         user.setId(1L);
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
-        when(socialAccountRepository.findByUserIdAndProvider(1L, SocialProvider.GITHUB)).thenReturn(Optional.empty());
+        when(socialAccountRepository.findByUserIdAndProvider(1L, SocialProvider.GITHUB))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> socialAuthService.unlinkAccount("user@example.com", SocialProvider.GITHUB))
                 .isInstanceOf(AppException.class)
@@ -129,7 +125,11 @@ class SocialAuthServiceTest {
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(socialAccountRepository.findByUserIdAndProvider(1L, SocialProvider.GOOGLE))
-                .thenReturn(Optional.of(SocialAccount.builder().user(user).provider(SocialProvider.GOOGLE).providerUserId("id").build()));
+                .thenReturn(Optional.of(SocialAccount.builder()
+                        .user(user)
+                        .provider(SocialProvider.GOOGLE)
+                        .providerUserId("id")
+                        .build()));
 
         var request = new SocialLoginRequest("code", "state", null, "http://localhost/callback");
 

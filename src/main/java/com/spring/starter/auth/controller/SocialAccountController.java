@@ -43,17 +43,13 @@ public class SocialAccountController {
     ResponseEntity<ApiResponse<Void>> linkAccount(
             Authentication authentication,
             @PathVariable String provider,
-            @Valid @RequestBody SocialLoginRequest request
-    ) {
+            @Valid @RequestBody SocialLoginRequest request) {
         socialAuthService.linkAccount(authentication.getName(), parseProvider(provider), request);
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 
     @DeleteMapping("/unlink/{provider}")
-    ResponseEntity<ApiResponse<Void>> unlinkAccount(
-            Authentication authentication,
-            @PathVariable String provider
-    ) {
+    ResponseEntity<ApiResponse<Void>> unlinkAccount(Authentication authentication, @PathVariable String provider) {
         socialAuthService.unlinkAccount(authentication.getName(), parseProvider(provider));
         return ResponseEntity.ok(ApiResponse.noContent());
     }

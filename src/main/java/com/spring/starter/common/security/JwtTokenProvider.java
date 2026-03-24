@@ -30,15 +30,13 @@ public class JwtTokenProvider {
     JwtDecoder jwtDecoder;
 
     public JwtTokenProvider(
-            JwtProperties jwtProperties,
-            JwtEncoder jwtEncoder,
-            @Qualifier("appJwtDecoder") JwtDecoder jwtDecoder) {
+            JwtProperties jwtProperties, JwtEncoder jwtEncoder, @Qualifier("appJwtDecoder") JwtDecoder jwtDecoder) {
         this.jwtProperties = jwtProperties;
         this.jwtEncoder = jwtEncoder;
         this.jwtDecoder = jwtDecoder;
     }
 
-	public String issueAccessToken(User user) {
+    public String issueAccessToken(User user) {
         return buildToken(user, jwtProperties.accessTokenExpirySeconds(), "access");
     }
 
@@ -48,9 +46,8 @@ public class JwtTokenProvider {
 
     private String buildToken(User user, Long expirySeconds, String type) {
         Instant now = Instant.now();
-        List<String> roles = user.getRoles().stream()
-                .map(ur -> ur.getRole().name())
-                .toList();
+        List<String> roles =
+                user.getRoles().stream().map(ur -> ur.getRole().name()).toList();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(jwtProperties.issuer())

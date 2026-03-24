@@ -23,56 +23,37 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiResponse<Void>> handleUnexpected(RuntimeException exception) {
         logger.error("Unexpected error", exception);
 
-        return ResponseEntity
-                .internalServerError()
+        return ResponseEntity.internalServerError()
                 .body(ApiResponse.error(
-                        ErrorCode.UNCATEGORIZED_EXCEPTION.getCode(),
-                        ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage()
-                ));
+                        ErrorCode.UNCATEGORIZED_EXCEPTION.getCode(), ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage()));
     }
 
     @ExceptionHandler(AppException.class)
     ResponseEntity<ApiResponse<Void>> handleAppException(AppException exception) {
         ErrorCode errorCode = exception.getErrorCode();
 
-        return ResponseEntity
-                .status(errorCode.getStatusCode())
-                .body(ApiResponse.error(
-                        errorCode.getCode(),
-                        errorCode.getMessage()
-                ));
+        return ResponseEntity.status(errorCode.getStatusCode())
+                .body(ApiResponse.error(errorCode.getCode(), errorCode.getMessage()));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException exception) {
         ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
 
-        return ResponseEntity
-                .status(errorCode.getStatusCode())
-                .body(ApiResponse.error(
-                        errorCode.getCode(),
-                        errorCode.getMessage()
-                ));
+        return ResponseEntity.status(errorCode.getStatusCode())
+                .body(ApiResponse.error(errorCode.getCode(), errorCode.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException exception) {
-        
-        List<FieldErrorResponse> errors = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(fieldError -> new FieldErrorResponse(
-                        fieldError.getField(),
-                        ValidationUtil.buildMessage(fieldError)
-                ))
+
+        List<FieldErrorResponse> errors = exception.getBindingResult().getFieldErrors().stream()
+                .map(fieldError ->
+                        new FieldErrorResponse(fieldError.getField(), ValidationUtil.buildMessage(fieldError)))
                 .toList();
 
-        return ResponseEntity
-                .status(ErrorCode.VALIDATION_ERROR.getStatusCode())
+        return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.getStatusCode())
                 .body(ApiResponse.error(
-                        ErrorCode.VALIDATION_ERROR.getCode(),
-                        ErrorCode.VALIDATION_ERROR.getMessage(),
-                        errors
-                ));
+                        ErrorCode.VALIDATION_ERROR.getCode(), ErrorCode.VALIDATION_ERROR.getMessage(), errors));
     }
 }

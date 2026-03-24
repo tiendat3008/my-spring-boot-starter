@@ -105,7 +105,10 @@ class AuthRecoveryServiceTest {
     @Test
     void verifyEmail_shouldThrow_whenOtpInvalid() {
         var request = new VerifyEmailRequest("user@example.com", "123456");
-        var user = User.builder().email("user@example.com").status(UserStatus.UNVERIFIED).build();
+        var user = User.builder()
+                .email("user@example.com")
+                .status(UserStatus.UNVERIFIED)
+                .build();
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -120,7 +123,10 @@ class AuthRecoveryServiceTest {
     @Test
     void verifyEmail_shouldActivateUser_whenOtpValid() {
         var request = new VerifyEmailRequest("user@example.com", "123456");
-        var user = User.builder().email("user@example.com").status(UserStatus.UNVERIFIED).build();
+        var user = User.builder()
+                .email("user@example.com")
+                .status(UserStatus.UNVERIFIED)
+                .build();
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);

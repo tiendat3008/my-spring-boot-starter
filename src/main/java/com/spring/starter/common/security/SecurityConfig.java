@@ -46,128 +46,118 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final JwtProperties jwtProperties;
-	private final ResourceLoader resourceLoader;
+    private final JwtProperties jwtProperties;
+    private final ResourceLoader resourceLoader;
 
-	private static final String[] PUBLIC_ENDPOINTS = {
-			"/api/v1/auth/register",
-			"/api/v1/auth/token",
-			"/api/v1/auth/forgot-password",
-			"/api/v1/auth/reset-password",
-			"/api/v1/auth/resend-otp",
-			"/api/v1/auth/verify-email",
-			"/api/v1/auth/refresh",
-			"/api/v1/auth/logout",
-			"/api/v1/auth/refresh/mobile",
-			"/api/v1/auth/logout/mobile",
-			"/api/v1/auth/oauth/**",
-			"/actuator/health"
-	};
+    private static final String[] PUBLIC_ENDPOINTS = {
+        "/api/v1/auth/register",
+        "/api/v1/auth/token",
+        "/api/v1/auth/forgot-password",
+        "/api/v1/auth/reset-password",
+        "/api/v1/auth/resend-otp",
+        "/api/v1/auth/verify-email",
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/logout",
+        "/api/v1/auth/refresh/mobile",
+        "/api/v1/auth/logout/mobile",
+        "/api/v1/auth/oauth/**",
+        "/actuator/health"
+    };
 
-	@Bean
-	public SecurityFilterChain securityFilterChain(
-			HttpSecurity http,
-			CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-			CustomAccessDeniedHandler customAccessDeniedHandler
-	) throws Exception {
-		
-		http
-				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-				.csrf(AbstractHttpConfigurer::disable)
-				.sessionManagement(session ->
-						session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-				)
-				.exceptionHandling((exceptions) -> exceptions
-						.authenticationEntryPoint(customAuthenticationEntryPoint)
-						.accessDeniedHandler(customAccessDeniedHandler)
-				)
-				.authorizeHttpRequests((authorize) -> authorize
-						.requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-						.requestMatchers("/api/v1/auth/change-password").authenticated()
-						.requestMatchers("/admin/filter").hasRole("ADMIN")
-						.anyRequest().authenticated()
-				)
-				.oauth2ResourceServer((oauth2) -> oauth2
-						.jwt(jwt -> jwt
-								.decoder(jwtDecoder(rsaPublicKey()))
-								.jwtAuthenticationConverter(jwtAuthenticationConverter()))
-						.authenticationEntryPoint(customAuthenticationEntryPoint)
-				);
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+            CustomAccessDeniedHandler customAccessDeniedHandler)
+            throws Exception {
 
-		return http.build();
-	}
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling((exceptions) -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
+                .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers(PUBLIC_ENDPOINTS)
+                        .permitAll()
+                        .requestMatchers("/api/v1/auth/change-password")
+                        .authenticated()
+                        .requestMatchers("/admin/filter")
+                        .hasRole("ADMIN")
+                        .anyRequest()
+                        .authenticated())
+                .oauth2ResourceServer((oauth2) -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder(rsaPublicKey()))
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint(customAuthenticationEntryPoint));
 
-	@Bean
-	JwtAuthenticationConverter jwtAuthenticationConverter() {
-		JwtGrantedAuthoritiesConverter authoritiesConverter =
-				new JwtGrantedAuthoritiesConverter();
+        return http.build();
+    }
 
-		authoritiesConverter.setAuthoritiesClaimName("roles");
-		authoritiesConverter.setAuthorityPrefix("ROLE_");
+    @Bean
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
-		JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-		converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        authoritiesConverter.setAuthoritiesClaimName("roles");
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
 
-		return converter;
-	}
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
 
-	@Bean
-	public CorsConfigurationSource corsConfigurationSource() {
-		var config = new CorsConfiguration();
+        return converter;
+    }
 
-		config.setAllowedOrigins(List.of(
-				"http://localhost:3000",
-				"http://localhost:5173"
-		));
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		config.setAllowedHeaders(List.of("*"));
-		config.setAllowCredentials(true);
-		config.setMaxAge(3600L);
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        var config = new CorsConfiguration();
 
-		var source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
-		return source;
-	}
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
 
-	@Bean
-	PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder(12);
-	}
+        return source;
+    }
 
-	@Bean("appJwtDecoder")
-	JwtDecoder jwtDecoder(RSAPublicKey publicKey) {
-		return NimbusJwtDecoder.withPublicKey(publicKey).build();
-	}
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
+    }
 
-	@Bean
-	JwtEncoder jwtEncoder(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
-		JWK jwk = new RSAKey.Builder(publicKey)
-				.privateKey(privateKey)
-				.build();
+    @Bean("appJwtDecoder")
+    JwtDecoder jwtDecoder(RSAPublicKey publicKey) {
+        return NimbusJwtDecoder.withPublicKey(publicKey).build();
+    }
 
-		JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+    @Bean
+    JwtEncoder jwtEncoder(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
+        JWK jwk = new RSAKey.Builder(publicKey).privateKey(privateKey).build();
 
-		return new NimbusJwtEncoder(jwks);
-	}
+        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
 
-	@Bean
-	RSAPublicKey rsaPublicKey() {
-		return loadKey(jwtProperties.publicKey(), RsaKeyConverters.x509());
-	}
+        return new NimbusJwtEncoder(jwks);
+    }
 
-	@Bean
-	RSAPrivateKey rsaPrivateKey() {
-		return loadKey(jwtProperties.privateKey(), RsaKeyConverters.pkcs8());
-	}
+    @Bean
+    RSAPublicKey rsaPublicKey() {
+        return loadKey(jwtProperties.publicKey(), RsaKeyConverters.x509());
+    }
 
-	private <T> T loadKey(String location, Converter<InputStream, T> converter) {
-		Resource resource = resourceLoader.getResource(location);
+    @Bean
+    RSAPrivateKey rsaPrivateKey() {
+        return loadKey(jwtProperties.privateKey(), RsaKeyConverters.pkcs8());
+    }
 
-		try (InputStream inputStream = resource.getInputStream()) {
-			return converter.convert(inputStream);
-		} catch (IOException ex) {
-			throw new IllegalStateException("Unable to load key from: " + location, ex);
-		}
-	}
+    private <T> T loadKey(String location, Converter<InputStream, T> converter) {
+        Resource resource = resourceLoader.getResource(location);
+
+        try (InputStream inputStream = resource.getInputStream()) {
+            return converter.convert(inputStream);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Unable to load key from: " + location, ex);
+        }
+    }
 }

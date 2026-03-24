@@ -23,9 +23,9 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "user_roles", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "user_id", "role" })
-})
+@Table(
+        name = "user_roles",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "role"})})
 @Getter
 @Setter
 @Builder

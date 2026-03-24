@@ -1,11 +1,13 @@
 package com.spring.starter.auth.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,10 +19,10 @@ import com.spring.starter.auth.dto.AuthResponse;
 import com.spring.starter.auth.dto.ChangePasswordRequest;
 import com.spring.starter.auth.dto.ForgotPasswordRequest;
 import com.spring.starter.auth.dto.LogoutRequest;
-import com.spring.starter.auth.dto.ResendOtpRequest;
 import com.spring.starter.auth.dto.RefreshTokenRequest;
 import com.spring.starter.auth.dto.RegisterRequest;
 import com.spring.starter.auth.dto.RegisterResponse;
+import com.spring.starter.auth.dto.ResendOtpRequest;
 import com.spring.starter.auth.dto.ResetPasswordRequest;
 import com.spring.starter.auth.dto.UserSessionResponse;
 import com.spring.starter.auth.dto.VerifyEmailRequest;
@@ -36,8 +38,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -49,21 +49,14 @@ public class AuthController {
     CookieService cookieService;
 
     @PostMapping("/register")
-    ResponseEntity<ApiResponse<RegisterResponse>> register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
+    ResponseEntity<ApiResponse<RegisterResponse>> register(@Valid @RequestBody RegisterRequest request) {
         var result = authService.register(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Registration successful", result));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Registration successful", result));
     }
 
     @PostMapping("/token")
     ResponseEntity<ApiResponse<AuthResponse>> authenticate(
-            @Valid @RequestBody AuthRequest request,
-            HttpServletRequest httpRequest,
-            HttpServletResponse response
-    ) {
+            @Valid @RequestBody AuthRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         var result = authService.authenticate(request, httpRequest);
         cookieService.addRefreshToken(response, result.refreshToken());
         return ResponseEntity.ok(ApiResponse.success(result));
@@ -73,8 +66,7 @@ public class AuthController {
     ResponseEntity<ApiResponse<AuthResponse>> refresh(
             @CookieValue("refresh_token") String refreshToken,
             HttpServletRequest httpRequest,
-            HttpServletResponse response
-    ) {
+            HttpServletResponse response) {
         var result = authService.refreshAccessToken(refreshToken, httpRequest);
         cookieService.addRefreshToken(response, result.refreshToken());
         return ResponseEntity.ok(ApiResponse.success(result));
@@ -82,9 +74,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     ResponseEntity<ApiResponse<Void>> logout(
-            @CookieValue("refresh_token") String refreshToken,
-            HttpServletResponse response
-    ) {
+            @CookieValue("refresh_token") String refreshToken, HttpServletResponse response) {
         authService.logout(refreshToken);
         cookieService.clearRefreshToken(response);
         return ResponseEntity.ok(ApiResponse.noContent());
@@ -92,17 +82,13 @@ public class AuthController {
 
     @PostMapping("/refresh/mobile")
     ResponseEntity<ApiResponse<AuthResponse>> refreshMobile(
-            @Valid @RequestBody RefreshTokenRequest request,
-            HttpServletRequest httpRequest
-    ) {
+            @Valid @RequestBody RefreshTokenRequest request, HttpServletRequest httpRequest) {
         var result = authService.refreshAccessToken(request.token(), httpRequest);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @PostMapping("/logout/mobile")
-    ResponseEntity<ApiResponse<Void>> logoutMobile(
-            @RequestBody LogoutRequest request
-    ) {
+    ResponseEntity<ApiResponse<Void>> logoutMobile(@RequestBody LogoutRequest request) {
         authService.logout(request.token());
         return ResponseEntity.ok(ApiResponse.noContent());
     }
@@ -112,8 +98,7 @@ public class AuthController {
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequest request,
             @CookieValue(value = "refresh_token", required = false) String refreshToken,
-            HttpServletResponse response
-    ) {
+            HttpServletResponse response) {
         authService.changePassword(authentication.getName(), request, refreshToken);
 
         if (refreshToken != null && !refreshToken.isBlank()) {
@@ -154,10 +139,7 @@ public class AuthController {
     }
 
     @DeleteMapping("/sessions/{sessionId}")
-    ResponseEntity<ApiResponse<Void>> revokeSession(
-            Authentication authentication,
-            @PathVariable String sessionId
-    ) {
+    ResponseEntity<ApiResponse<Void>> revokeSession(Authentication authentication, @PathVariable String sessionId) {
         authService.revokeSession(authentication.getName(), sessionId);
         return ResponseEntity.ok(ApiResponse.noContent());
     }
