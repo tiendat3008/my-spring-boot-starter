@@ -45,7 +45,11 @@ public enum ErrorCode {
     SOCIAL_ACCOUNT_ALREADY_LINKED("SOCIAL_ACCOUNT_ALREADY_LINKED", "Social account already linked for this provider", HttpStatus.BAD_REQUEST),
     SOCIAL_ACCOUNT_ALREADY_USED("SOCIAL_ACCOUNT_ALREADY_USED", "Social account is linked with another user", HttpStatus.BAD_REQUEST),
     SOCIAL_ACCOUNT_NOT_FOUND("SOCIAL_ACCOUNT_NOT_FOUND", "Social account not found", HttpStatus.NOT_FOUND),
-    SESSION_NOT_FOUND("SESSION_NOT_FOUND", "Session not found", HttpStatus.NOT_FOUND);
+    SESSION_NOT_FOUND("SESSION_NOT_FOUND", "Session not found", HttpStatus.NOT_FOUND),
+
+    FILE_UPLOAD_FAILED("FILE_UPLOAD_FAILED", "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_DELETE_FAILED("FILE_DELETE_FAILED", "Failed to delete file", HttpStatus.INTERNAL_SERVER_ERROR),
+    PRESIGNED_URL_GENERATION_FAILED("PRESIGNED_URL_GENERATION_FAILED", "Failed to generate pre-signed URL", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
 
     private final String code;

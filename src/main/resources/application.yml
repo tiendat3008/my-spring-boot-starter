@@ -12,6 +12,9 @@ spring:
         jdbc:
           time_zone: UTC
 
+  thymeleaf:
+    cache: false
+
 app:
   jwt:
     public-key: classpath:app.pub
@@ -19,6 +22,7 @@ app:
     access-token-expiry-seconds: ${JWT_ACCESS_EXPIRY:900} # 15 minutes
     refresh-token-expiry-seconds: ${JWT_REFRESH_EXPIRY:604800} # 7 days
     issuer: ${JWT_ISSUER:http://localhost:8080}
+
   oauth2:
     providers:
       google:
@@ -31,3 +35,7 @@ app:
         client-secret: ${GITHUB_OAUTH_CLIENT_SECRET:}
         token-uri: https://github.com/login/oauth/access_token
         user-info-uri: https://api.github.com/user
+
+  storage:
+    provider: ${STORAGE_PROVIDER:minio} # minio | s3
+    bucket: ${STORAGE_BUCKET:hdcamp}
